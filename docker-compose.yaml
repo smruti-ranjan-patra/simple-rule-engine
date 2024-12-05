@@ -1,0 +1,101 @@
+version: '3.3'
+
+volumes:
+  database_data:
+    driver: local
+  database_data_new:
+    driver: local
+  rabbitmqetc:
+    driver: local
+  rabbitmqdata:
+    driver: local
+  rabbitmqlogs:
+    driver: local
+
+networks:
+  default:
+    name: backend
+    external: true
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+
+services:
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    platform: linux/amd64 # Run with Rosetta
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - backend
+
+  db:
+    platform: linux/amd64 # Run with Rosetta
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    volumes:
+      - database_data_new:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: docker
+    restart: on-failure
+    networks:
+      - backend
+
+  rabbitmq:
+    platform: linux/amd64 # Run with Rosetta
+    image: rabbitmq:3.9-management-alpine
+    environment:
+      RABBITMQ_ERLANG_COOKIE: rabbitmqcookie
+      RABBITMQ_DEFAULT_USER: rabbit
+      RABBITMQ_DEFAULT_PASS: docker
+    volumes:
+      - rabbitmqetc:/etc/rabbitmq/
+      - rabbitmqdata:/var/lib/rabbitmq/
+      - rabbitmqlogs:/var/log/rabbitmq/
+    networks:
+      - backend
+    restart: on-failure
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  php:
+    platform: linux/amd64 # Run with Rosetta
+    image: ghcr.io/debricked/docker-image-php-xdebug:latest
+    environment:
+      PHP_IDE_CONFIG: "serverName=docker.php.cli"
+    expose:
+      - 9000
+      - 9001
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+      - rabbitmq
+      - mailhog
+    restart: on-failure
+    tty: true
+    shm_size: 2g
+    networks:
+      - backend
+
+  nginx:
+    platform: linux/amd64 # Run with Rosetta
+    image: nginx:1.21.6-alpine
+    ports:
+      - "8888:80"
+      - "8707:8707"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./:/var/www/html
+    depends_on:
+      - php
+    restart: on-failure
+    networks:
+      - backend
+      - frontend
