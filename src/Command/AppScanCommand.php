@@ -36,6 +36,18 @@ class AppScanCommand extends Command
         ;
     }
 
+    /**
+     * Executes the command to notify users on the status of the scan.
+     *
+     * @param InputInterface $input The input interface for command arguments and options.
+     * @param OutputInterface $output The output interface for displaying command information.
+     *
+     * @return int The command status code (SUCCESS or FAILURE).
+     *
+     * This function retrieves scan results from the Debricked API using the provided argument,
+     * generates data for rule checking, and evaluates rules based on the scan results. It 
+     * provides feedback to the user via the console output.
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);

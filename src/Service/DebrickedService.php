@@ -16,6 +16,13 @@ class DebrickedService
         $this->client = $client;
     }
 
+    /**
+     * Sends a POST request to the Debricked token generation API to obtain a JWT token.
+     * Sets the received JWT token to the class property if successful.
+     * Logs an error message if the token generation fails.
+     *
+     * @throws Exception if the response status code is not 200 or the token is not present in the response.
+     */
     public function setJwtToken()
     {
         try {
@@ -39,6 +46,15 @@ class DebrickedService
         }
     }
 
+    /**
+     * Uploads a file to the Debricked API and starts a scan.
+     *
+     * @param UploadedFile $file The file to upload.
+     * @param string $repositoryName The name of the repository.
+     * @param string $commitName The commit name.
+     * @return array An array containing the ciUploadId and the uploadProgramsFileId.
+     * @throws Exception If the upload fails.
+     */
     public function uploadFile($file, $repositoryName, $commitName): array
     {
         try {
@@ -72,6 +88,13 @@ class DebrickedService
         }
     }
 
+    /**
+     * Start the scan process using the ciUploadId returned by the uploadFile() method.
+     *
+     * @param string $uploadId The ciUploadId returned by the uploadFile() method.
+     *
+     * @throws Exception If the request fails.
+     */
     public function startScan($uploadId)
     {
         try {
@@ -97,6 +120,18 @@ class DebrickedService
         }
     }
 
+    /**
+     * Gets the status of a scan using the ciUploadId returned by the uploadFile() method.
+     *
+     * @param string $ciUploadId The ciUploadId returned by the uploadFile() method.
+     *
+     * @return string The status of the scan, one of:
+     *     - Done: Scan is done and the report is available.
+     *     - Not-Started: The scan has not started yet.
+     *     - In-Progress: The scan is in progress.
+     *
+     * @throws Exception If the request fails.
+     */
     public function getScanResult($ciUploadId)
     {
         try {

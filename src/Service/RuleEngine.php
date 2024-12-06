@@ -68,6 +68,7 @@ class RuleEngine
                 break;
 
             case 'send_slack_message':
+                $this->notifierService->notifySlack($params['message'], $params['channel'], $params['tag']);
                 // Code to send a Slack message; slack channel and tagging data
                 break;
 
